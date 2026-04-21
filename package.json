@@ -1,0 +1,37 @@
+{
+  "name": "@storentia/sdk",
+  "version": "0.0.1",
+  "description": "Storentia API SDK for Node.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "storentia",
+    "api",
+    "sdk"
+  ],
+  "author": "Storentia",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  }
+}
