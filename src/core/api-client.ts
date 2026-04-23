@@ -1,5 +1,6 @@
 import { ClientConfig, RequestOptions, ApiError, AuthResponse } from '../types';
 import { formatApiError, printError } from './error-formatter';
+import { Logger } from './logger';
 
 /**
  * Low-level HTTP client for Storentia API. Handles authentication, request signing, and error handling.
@@ -12,6 +13,8 @@ export class ApiClient {
   private timeout: number;
   private accessToken: string | null = null;
   private tokenExpiresAt: number | null = null;
+  private apiKeyToken: string | null = null;
+  private logger = new Logger('ApiClient');
 
   /**
    * @param config - Client credentials and configuration
@@ -30,6 +33,7 @@ export class ApiClient {
    */
   async authenticate(): Promise<AuthResponse> {
     const url = `${this.baseUrl}/v1/auth/oauth/token`;
+    this.logger.info(`Authenticating at ${url}`);
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -41,15 +45,24 @@ export class ApiClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
+      this.logger.error(`Auth failed: ${response.status}`, errorBody);
       const formatted = formatApiError(response.status, errorBody);
       console.error(printError(formatted));
       throw new ApiError(response.status, formatted.message);
     }
 
     const authData = (await response.json()) as AuthResponse;
-    this.accessToken = authData.access_token;
+    const expiresAtMs = new Date(authData.data.expires_at).getTime();
+    const expiresInSeconds = Math.floor((expiresAtMs - Date.now()) / 1000);
+
+    this.logger.debug(`OAuth token exchange response`, {
+      token: authData.data.token.substring(0, 20) + '...',
+      expires_in: expiresInSeconds,
+    });
+    this.accessToken = authData.data.token;
     // Set expiration with a 60-second buffer
-    this.tokenExpiresAt = Date.now() + (authData.expires_in - 60) * 1000;
+    this.tokenExpiresAt = expiresAtMs - 60 * 1000;
+    this.logger.success(`Token received | Expires in ${expiresInSeconds}s`);
     return authData;
   }
 
@@ -60,6 +73,14 @@ export class ApiClient {
   setAccessToken(token: string): void {
     this.accessToken = token;
     this.tokenExpiresAt = null;
+  }
+
+  /**
+   * Set API key token for x-API-Key header (e.g., for GraphQL endpoints)
+   * @param token - API key token string
+   */
+  setApiKeyToken(token: string): void {
+    this.apiKeyToken = token;
   }
 
   /**
@@ -75,9 +96,22 @@ export class ApiClient {
    * @private
    */
   private isTokenExpired(): boolean {
-    if (!this.accessToken) return true;
-    if (this.tokenExpiresAt === null) return false; // Manual token
-    return Date.now() >= this.tokenExpiresAt;
+    if (!this.accessToken) {
+      this.logger.warn(`No token set`);
+      return true;
+    }
+    if (this.tokenExpiresAt === null) {
+      this.logger.debug(`Manual token (no expiration)`);
+      return false; // Manual token
+    }
+    const expired = Date.now() >= this.tokenExpiresAt;
+    const timeLeft = Math.round((this.tokenExpiresAt - Date.now()) / 1000);
+    if (expired) {
+      this.logger.warn(`Token expired`);
+    } else {
+      this.logger.debug(`Token valid | TTL: ${timeLeft}s`);
+    }
+    return expired;
   }
 
   /**
@@ -97,7 +131,10 @@ export class ApiClient {
   ): Promise<T> {
     const isAuthRequest = endpoint.includes('/auth/oauth/token');
 
+    this.logger.info(`${method} ${endpoint}`);
+
     if (!isAuthRequest && this.isTokenExpired()) {
+      this.logger.warn(`Token expired, re-authenticating...`);
       await this.authenticate();
     }
 
@@ -108,7 +145,15 @@ export class ApiClient {
     };
 
     if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken}`;
+      headers['Authorization'] = `Bearer ${this.accessToken.substring(0, 20)}...`;
+      this.logger.debug(`Auth header added`);
+    } else {
+      this.logger.warn(`No auth token available`);
+    }
+
+    if (this.apiKeyToken) {
+      headers['x-API-Key'] = this.apiKeyToken;
+      this.logger.debug(`x-API-Key header added`);
     }
 
     const controller = new AbortController();
@@ -118,6 +163,7 @@ export class ApiClient {
     );
 
     try {
+      this.logger.debug(`Sending to ${url}`);
       const response = await fetch(url, {
         method,
         headers,
@@ -125,14 +171,19 @@ export class ApiClient {
         signal: controller.signal,
       });
 
+      this.logger.debug(`Response status: ${response.status}`);
+
       if (!response.ok) {
         const errorBody = await response.text();
+        this.logger.error(`Error response`, errorBody);
         const formatted = formatApiError(response.status, errorBody);
         console.error(printError(formatted));
         throw new ApiError(response.status, formatted.message);
       }
 
-      return (await response.json()) as T;
+      const result = (await response.json()) as T;
+      this.logger.success(`Request successful`);
+      return result;
     } finally {
       clearTimeout(timeoutId);
     }
@@ -151,6 +202,11 @@ export class ApiClient {
     variables?: Record<string, unknown>,
     options?: RequestOptions
   ): Promise<T> {
+    this.logger.debug(`Query: ${query.substring(0, 50)}...`);
+    if (variables) {
+      this.logger.debug(`Variables: ${JSON.stringify(variables)}`);
+    }
+
     const res = await this.request<{ data: T; errors?: any[] }>(
       'POST',
       '/graphql',
@@ -160,10 +216,11 @@ export class ApiClient {
 
     if (res.errors && res.errors.length > 0) {
       const messages = res.errors.map((e) => e.message).join(', ');
-      console.error(`\n❌ GraphQL Error\n   ${messages}\n`);
+      this.logger.error(`GraphQL error: ${messages}`);
       throw new ApiError(400, messages);
     }
 
+    this.logger.success(`GraphQL query successful`);
     return res.data;
   }
 }
