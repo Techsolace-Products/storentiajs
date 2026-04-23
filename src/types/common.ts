@@ -1,14 +1,3 @@
-export interface ClientConfig {
-  apiKey: string;
-  baseUrl?: string;
-  timeout?: number;
-}
-
-export interface RequestOptions {
-  headers?: Record<string, string>;
-  timeout?: number;
-}
-
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

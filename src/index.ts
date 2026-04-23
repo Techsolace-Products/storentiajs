@@ -1,2 +1,2 @@
-export { StorentiaClient } from './client';
+export { Storentia } from './client';
 export * from './types';
