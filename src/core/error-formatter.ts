@@ -41,7 +41,12 @@ export function formatApiError(statusCode: number, body: string): FormattedError
   // Handle validation errors
   if (parsed.errors && Array.isArray(parsed.errors)) {
     const validationErrors = parsed.errors
-      .map((e: any) => `${e.field}: ${e.tag}`)
+      .map((e: any) => {
+        if (typeof e === 'string') return e;
+        const field = e.field || e.property || e.path || '';
+        const message = e.message || e.tag || e.error || 'Invalid value';
+        return field ? `${field}: ${message}` : message;
+      })
       .slice(0, 5);
 
     return {
