@@ -1,4 +1,5 @@
 import { ClientConfig, RequestOptions, ApiError, AuthResponse } from '../types';
+import { formatApiError, printError } from './error-formatter';
 
 /**
  * Low-level HTTP client for Storentia API. Handles authentication, request signing, and error handling.
@@ -18,7 +19,7 @@ export class ApiClient {
   constructor(config: ClientConfig) {
     this.clientId = config.clientId;
     this.clientSecret = config.clientSecret;
-    this.baseUrl = 'https://apis.storentia.com/v1';
+    this.baseUrl = 'https://apis.storentia.com';
     this.timeout = config.timeout || 30000;
   }
 
@@ -28,7 +29,7 @@ export class ApiClient {
    * @throws ApiError if authentication fails
    */
   async authenticate(): Promise<AuthResponse> {
-    const url = `${this.baseUrl}/auth/oauth/token`;
+    const url = `${this.baseUrl}/v1/auth/oauth/token`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,8 +40,10 @@ export class ApiClient {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new ApiError(response.status, `Authentication failed: ${error}`);
+      const errorBody = await response.text();
+      const formatted = formatApiError(response.status, errorBody);
+      console.error(printError(formatted));
+      throw new ApiError(response.status, formatted.message);
     }
 
     const authData = (await response.json()) as AuthResponse;
@@ -123,8 +126,10 @@ export class ApiClient {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        throw new ApiError(response.status, error || response.statusText);
+        const errorBody = await response.text();
+        const formatted = formatApiError(response.status, errorBody);
+        console.error(printError(formatted));
+        throw new ApiError(response.status, formatted.message);
       }
 
       return (await response.json()) as T;
@@ -154,10 +159,9 @@ export class ApiClient {
     );
 
     if (res.errors && res.errors.length > 0) {
-      throw new ApiError(
-        400,
-        `GraphQL Error: ${res.errors.map((e) => e.message).join(', ')}`
-      );
+      const messages = res.errors.map((e) => e.message).join(', ');
+      console.error(`\n❌ GraphQL Error\n   ${messages}\n`);
+      throw new ApiError(400, messages);
     }
 
     return res.data;
