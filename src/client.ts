@@ -3,6 +3,7 @@ import { AuthResource } from './resources/auth';
 import { ProductResource } from './resources/products';
 import { BlogResource } from './resources/blogs';
 import { PageResource } from './resources/pages';
+import { CollectionResource } from './resources/collections';
 import { ClientConfig } from './types';
 
 /**
@@ -21,7 +22,7 @@ import { ClientConfig } from './types';
 export class Storentia {
   private client: ApiClient;
 
-  /** Access product operations (CRUD, variants, options) */
+  /** Access authentication operations */
   public auth: AuthResource;
   /** Access product operations (CRUD, variants, options) */
   public products: ProductResource;
@@ -29,6 +30,8 @@ export class Storentia {
   public blogs: BlogResource;
   /** Access page operations (CRUD) */
   public pages: PageResource;
+  /** Access collection operations (CRUD, product mapping) */
+  public collections: CollectionResource;
 
   /**
    * Initialize the Storentia SDK with authentication credentials
@@ -41,6 +44,7 @@ export class Storentia {
     this.products = new ProductResource(this.client);
     this.blogs = new BlogResource(this.client);
     this.pages = new PageResource(this.client);
+    this.collections = new CollectionResource(this.client);
   }
 
   /**
