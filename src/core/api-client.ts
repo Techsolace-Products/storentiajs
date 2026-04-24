@@ -145,16 +145,22 @@ export class ApiClient {
     };
 
     if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken.substring(0, 20)}...`;
-      this.logger.debug(`Auth header added`);
+      headers['x-API-Key'] = this.accessToken;
     } else {
       this.logger.warn(`No auth token available`);
     }
 
     if (this.apiKeyToken) {
       headers['x-API-Key'] = this.apiKeyToken;
-      this.logger.debug(`x-API-Key header added`);
     }
+
+    // Log sanitized headers
+    const sanitizedHeaders = { ...headers };
+    if (sanitizedHeaders['x-API-Key']) {
+      sanitizedHeaders['x-API-Key'] =
+        sanitizedHeaders['x-API-Key'].substring(0, 25) + '...';
+    }
+    this.logger.debug(`Request headers:`, sanitizedHeaders);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(
@@ -202,7 +208,7 @@ export class ApiClient {
     variables?: Record<string, unknown>,
     options?: RequestOptions
   ): Promise<T> {
-    this.logger.debug(`Query: ${query.substring(0, 50)}...`);
+    this.logger.debug(`GraphQL Query:\n${query}`);
     if (variables) {
       this.logger.debug(`Variables: ${JSON.stringify(variables)}`);
     }
