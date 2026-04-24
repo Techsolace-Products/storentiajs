@@ -1,4 +1,5 @@
 import { UUID, PaginationInput, PageInfo } from './common';
+import { Media } from './media';
 
 export enum ProductStatus {
   DRAFT = 'DRAFT',
@@ -46,14 +47,6 @@ export interface ProductOptionValue {
   id: UUID;
   value: string;
   metadata?: any;
-}
-
-export interface Media {
-  id: UUID;
-  name: string;
-  fileKey: string;
-  mimeType?: string;
-  fileSize?: number;
 }
 
 export interface InventoryItem {
