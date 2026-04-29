@@ -4,8 +4,8 @@ import { Contact, CreateContactInput, ContactPagination } from '../types';
 export class ContactResource extends BaseResource {
   async create(input: CreateContactInput): Promise<Contact> {
     const mutation = `
-      mutation CreateContact($storeId: String!, $name: String!, $email: String!, $message: String!) {
-        createContact(input: { storeId: $storeId, name: $name, email: $email, message: $message }) {
+      mutation CreateContact($name: String!, $email: String!, $message: String!) {
+        createContact(input: { name: $name, email: $email, message: $message }) {
           id
           storeId
           name
@@ -22,10 +22,10 @@ export class ContactResource extends BaseResource {
     ).then((res) => res.createContact);
   }
 
-  async list(storeId: string, pagination: ContactPagination = { limit: 10, offset: 0 }): Promise<Contact[]> {
+  async list(pagination: ContactPagination = { limit: 10, offset: 0 }): Promise<Contact[]> {
     const query = `
-      query GetContacts($storeId: String!, $limit: Int!, $offset: Int!) {
-        contacts(storeId: $storeId, pagination: { limit: $limit, offset: $offset }) {
+      query GetContacts($limit: Int!, $offset: Int!) {
+        contacts(pagination: { limit: $limit, offset: $offset }) {
           id
           storeId
           name
@@ -39,7 +39,7 @@ export class ContactResource extends BaseResource {
     `;
     return this._graphql<{ contacts: Contact[] }>(
       query,
-      { storeId, ...pagination } as unknown as Record<string, unknown>
+      pagination as unknown as Record<string, unknown>
     ).then((res) => res.contacts);
   }
 

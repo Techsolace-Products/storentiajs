@@ -10,7 +10,6 @@ export interface Contact {
 }
 
 export interface CreateContactInput {
-  storeId: string;
   name: string;
   email: string;
   message: string;

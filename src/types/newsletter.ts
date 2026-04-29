@@ -10,7 +10,6 @@ export interface NewsletterSubscriber {
 }
 
 export interface SubscribeInput {
-  storeId: string;
   email: string;
 }
 
