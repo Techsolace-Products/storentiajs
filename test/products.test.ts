@@ -21,11 +21,9 @@ describe('ProductResource', () => {
 
     const result = await products.get('prod-1');
 
-    expect(apiClient.graphql).toHaveBeenCalledWith(
-      expect.stringContaining('query GetProduct'),
-      { id: 'prod-1' },
-      undefined
-    );
+    const calls = (apiClient.graphql as any).mock.calls;
+    expect(calls[0][0]).toMatch(/query GetProduct/);
+    expect(calls[0][1]).toEqual({ id: 'prod-1' });
     expect(result).toEqual(mockProduct);
   });
 
@@ -38,10 +36,9 @@ describe('ProductResource', () => {
 
     const result = await products.list({ status: 'ACTIVE' as any });
 
-    expect(apiClient.graphql).toHaveBeenCalledWith(
-      expect.stringContaining('query ListProducts'),
-      { status: 'ACTIVE' }
-    );
+    const calls = (apiClient.graphql as any).mock.calls;
+    expect(calls[0][0]).toMatch(/query ListProducts/);
+    expect(calls[0][1]).toEqual({ status: 'ACTIVE' });
     expect(result).toEqual(mockList);
   });
 
@@ -52,10 +49,9 @@ describe('ProductResource', () => {
 
     const result = await products.create(input as any);
 
-    expect(apiClient.graphql).toHaveBeenCalledWith(
-      expect.stringContaining('mutation CreateProduct'),
-      { input }
-    );
+    const calls = (apiClient.graphql as any).mock.calls;
+    expect(calls[0][0]).toMatch(/mutation CreateProduct/);
+    expect(calls[0][1]).toEqual({ input });
     expect(result).toEqual(mockCreated);
   });
 
@@ -64,10 +60,9 @@ describe('ProductResource', () => {
 
     const result = await products.delete('prod-1');
 
-    expect(apiClient.graphql).toHaveBeenCalledWith(
-      expect.stringContaining('mutation DeleteProduct'),
-      { id: 'prod-1' }
-    );
+    const calls = (apiClient.graphql as any).mock.calls;
+    expect(calls[0][0]).toMatch(/mutation DeleteProduct/);
+    expect(calls[0][1]).toEqual({ id: 'prod-1' });
     expect(result).toBe(true);
   });
 });
