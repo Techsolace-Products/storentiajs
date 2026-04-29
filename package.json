@@ -1,7 +1,15 @@
 {
   "name": "@storentia/sdk",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Storentia API SDK for Node.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Techsolace-Products/storentiajs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Techsolace-Products/storentiajs/issues"
+  },
+  "homepage": "https://github.com/Techsolace-Products/storentiajs#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
