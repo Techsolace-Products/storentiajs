@@ -6,6 +6,8 @@ import { PageResource } from './resources/pages';
 import { CollectionResource } from './resources/collections';
 import { MediaResource } from './resources/media';
 import { ContactResource } from './resources/contacts';
+import { NewsletterResource } from './resources/newsletter';
+import { LinkSetResource } from './resources/linkset';
 import { ClientConfig } from './types';
 
 /**
@@ -38,6 +40,10 @@ export class Storentia {
   public media: MediaResource;
   /** Access contact management operations (CRUD) */
   public contacts: ContactResource;
+  /** Access newsletter subscription operations */
+  public newsletter: NewsletterResource;
+  /** Access link set and navigation operations (CRUD) */
+  public linksets: LinkSetResource;
 
   /**
    * Initialize the Storentia SDK with authentication credentials
@@ -53,6 +59,8 @@ export class Storentia {
     this.collections = new CollectionResource(this.client);
     this.media = new MediaResource(this.client);
     this.contacts = new ContactResource(this.client);
+    this.newsletter = new NewsletterResource(this.client);
+    this.linksets = new LinkSetResource(this.client);
   }
 
   /**

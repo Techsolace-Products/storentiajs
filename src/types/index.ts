@@ -7,3 +7,5 @@ export * from './pages';
 export * from './collections';
 export * from './media';
 export * from './contacts';
+export * from './newsletter';
+export * from './linkset';
