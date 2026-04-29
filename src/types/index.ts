@@ -6,3 +6,4 @@ export * from './blogs';
 export * from './pages';
 export * from './collections';
 export * from './media';
+export * from './contacts';

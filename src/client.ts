@@ -5,6 +5,7 @@ import { BlogResource } from './resources/blogs';
 import { PageResource } from './resources/pages';
 import { CollectionResource } from './resources/collections';
 import { MediaResource } from './resources/media';
+import { ContactResource } from './resources/contacts';
 import { ClientConfig } from './types';
 
 /**
@@ -35,6 +36,8 @@ export class Storentia {
   public collections: CollectionResource;
   /** Access media library operations (Upload, folders, rename, move) */
   public media: MediaResource;
+  /** Access contact management operations (CRUD) */
+  public contacts: ContactResource;
 
   /**
    * Initialize the Storentia SDK with authentication credentials
@@ -49,6 +52,7 @@ export class Storentia {
     this.pages = new PageResource(this.client);
     this.collections = new CollectionResource(this.client);
     this.media = new MediaResource(this.client);
+    this.contacts = new ContactResource(this.client);
   }
 
   /**
