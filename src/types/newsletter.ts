@@ -1,14 +1,16 @@
 export interface NewsletterSubscriber {
   id: string;
+  storeId: string;
   email: string;
   status: 'ACTIVE' | 'UNSUBSCRIBED';
   subscribedAt: string;
-  unsubscribedAt: string | null;
+  unsubscribedAt?: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface SubscribeInput {
+  storeId: string;
   email: string;
 }
 
