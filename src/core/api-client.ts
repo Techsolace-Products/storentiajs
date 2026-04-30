@@ -1,5 +1,5 @@
 import { ClientConfig, RequestOptions, ApiError, AuthResponse } from '../types';
-import { formatApiError, printError } from './error-formatter';
+import { formatApiError } from './error-formatter';
 import { Logger } from './logger';
 
 /**
@@ -47,7 +47,6 @@ export class ApiClient {
       const errorBody = await response.text();
       this.logger.error(`Auth failed: ${response.status}`, errorBody);
       const formatted = formatApiError(response.status, errorBody);
-      console.error(printError(formatted));
       throw new ApiError(response.status, formatted.message);
     }
 
@@ -183,7 +182,6 @@ export class ApiClient {
         const errorBody = await response.text();
         this.logger.error(`Error response`, errorBody);
         const formatted = formatApiError(response.status, errorBody);
-        console.error(printError(formatted));
         throw new ApiError(response.status, formatted.message);
       }
 

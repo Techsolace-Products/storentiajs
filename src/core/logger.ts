@@ -42,9 +42,11 @@ const levelLabels: Record<LogLevel, string> = {
 
 export class Logger {
   private name: string;
+  private isDevelopment: boolean;
 
   constructor(name: string) {
     this.name = name;
+    this.isDevelopment = process.env.NODE_ENV === 'development' || process.env.DEBUG === 'true';
   }
 
   private formatTimestamp(): string {
@@ -60,6 +62,8 @@ export class Logger {
   }
 
   private log(level: LogLevel, message: string, data?: unknown): void {
+    if (!this.isDevelopment) return;
+
     const timestamp = this.formatTimestamp();
     const color = levelColors[level];
     const label = levelLabels[level];
