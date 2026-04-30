@@ -23,7 +23,8 @@ const PRODUCT_FIELDS = `
     id
     title
     description
-    price
+    sellingPrice
+    originalPrice
     status
     sku
     stock
@@ -39,7 +40,8 @@ const VARIANT_FIELDS = `
     id
     productId
     title
-    price
+    sellingPrice
+    originalPrice
     sku
     stock
     mediaIds
@@ -70,7 +72,8 @@ const MEDIA_FIELDS = `
  * // Create a product
  * const newProduct = await storentia.products.create({
  *   title: 'T-Shirt',
- *   price: 29.99,
+ *   sellingPrice: 29.99,
+ *   originalPrice: 39.99,
  *   sku: 'TSHIRT-001'
  * });
  * ```
@@ -159,7 +162,8 @@ export class ProductResource extends BaseResource {
             variantTitle
             sku
             stock
-            price
+            sellingPrice
+            originalPrice
             status
           }
           pageInfo {
@@ -187,6 +191,8 @@ export class ProductResource extends BaseResource {
           id
           title
           status
+          sellingPrice
+          originalPrice
         }
       }
     `;
@@ -208,7 +214,8 @@ export class ProductResource extends BaseResource {
         updateProduct(id: $id, input: $input) {
           id
           title
-          price
+          sellingPrice
+          originalPrice
           status
         }
       }
@@ -247,7 +254,8 @@ export class ProductResource extends BaseResource {
           id
           title
           sku
-          price
+          sellingPrice
+          originalPrice
         }
       }
     `;

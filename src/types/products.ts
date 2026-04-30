@@ -11,7 +11,8 @@ export interface Product {
   id: UUID;
   title: string;
   description?: string;
-  price: number;
+  sellingPrice: number;
+  originalPrice?: number;
   status: ProductStatus;
   sku?: string;
   stock?: number;
@@ -29,7 +30,8 @@ export interface ProductVariant {
   id: UUID;
   productId: UUID;
   title: string;
-  price: number;
+  sellingPrice: number;
+  originalPrice?: number;
   sku?: string;
   stock?: number;
   mediaIds?: UUID[];
@@ -56,14 +58,16 @@ export interface InventoryItem {
   variantTitle?: string;
   sku?: string;
   stock: number;
-  price: number;
+  sellingPrice: number;
+  originalPrice?: number;
   status: ProductStatus;
 }
 
 export interface CreateProductInput {
   title: string;
   description?: string;
-  price: number;
+  sellingPrice: number;
+  originalPrice?: number;
   status?: ProductStatus;
   sku?: string;
   stock?: number;
@@ -76,7 +80,8 @@ export interface CreateProductInput {
 export interface UpdateProductInput {
   title?: string;
   description?: string;
-  price?: number;
+  sellingPrice?: number;
+  originalPrice?: number;
   status?: ProductStatus;
   sku?: string;
   stock?: number;
@@ -88,7 +93,8 @@ export interface UpdateProductInput {
 export interface CreateProductVariantInput {
   productId: UUID;
   title: string;
-  price: number;
+  sellingPrice: number;
+  originalPrice?: number;
   sku?: string;
   stock?: number;
   mediaIds?: UUID[];
@@ -97,7 +103,8 @@ export interface CreateProductVariantInput {
 
 export interface UpdateProductVariantInput {
   title?: string;
-  price?: number;
+  sellingPrice?: number;
+  originalPrice?: number;
   sku?: string;
   stock?: number;
   mediaIds?: UUID[];
