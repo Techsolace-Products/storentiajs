@@ -181,7 +181,7 @@ export class ProductResource extends BaseResource {
 
   /**
    * Create a new product
-   * @param input - Product data (title, price, sku, etc.)
+   * @param input - Product data (title, sellingPrice, originalPrice, sku, etc.)
    * @returns Created product
    */
   async create(input: CreateProductInput): Promise<Product> {
@@ -267,7 +267,7 @@ export class ProductResource extends BaseResource {
 
   /**
    * Create a new product variant
-   * @param input - Variant data (title, price, sku, etc.)
+   * @param input - Variant data (title, sellingPrice, originalPrice, sku, etc.)
    * @returns Created variant
    */
   async createVariant(

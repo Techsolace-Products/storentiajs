@@ -20,7 +20,8 @@ export class CollectionResource extends BaseResource {
           products {
             id
             title
-            price
+            sellingPrice
+            originalPrice
           }
           subCollections {
             id
