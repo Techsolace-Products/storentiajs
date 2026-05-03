@@ -6,6 +6,7 @@ import {
   VerifyAuthEmailInput,
   VerifyAuthEmailResponse,
   User,
+  CustomerAuthResponse,
 } from '../types';
 
 export class AuthResource extends BaseResource {
@@ -13,23 +14,52 @@ export class AuthResource extends BaseResource {
     return this.client.authenticate();
   }
 
-  async sendAuthenticationEmail(input: SendAuthEmailInput): Promise<SendAuthEmailResponse> {
+  async authenticate(email: string, password: string, publicStoreToken: string): Promise<CustomerAuthResponse> {
     const mutation = `
-      mutation SendAuthEmail($email: String!, $name: String!) {
-        sendAuthenticationEmail(input: { email: $email, name: $name }) {
+      mutation Authenticate($email: String!, $password: String!) {
+        authenticate(input: { email: $email, password: $password }) {
+          id
+          email
+          name
+          token
+        }
+      }
+    `;
+
+    const headers = this.client.getPublicStoreTokenHeaders(publicStoreToken);
+    const result = await this._graphql<{ authenticate: CustomerAuthResponse }>(
+      mutation,
+      { email, password },
+      { headers }
+    ).then((res) => res.authenticate);
+
+    if (result.token) {
+      this.client.setCustomerJWT(result.token);
+    }
+
+    return result;
+  }
+
+  async sendAuthenticationEmail(email: string, publicStoreToken: string): Promise<SendAuthEmailResponse> {
+    const mutation = `
+      mutation SendAuthEmail($email: String!) {
+        sendAuthenticationEmail(input: { email: $email }) {
           success
           message
           email
         }
       }
     `;
+
+    const headers = this.client.getPublicStoreTokenHeaders(publicStoreToken);
     return this._graphql<{ sendAuthenticationEmail: SendAuthEmailResponse }>(
       mutation,
-      input as unknown as Record<string, unknown>
+      { email },
+      { headers }
     ).then((res) => res.sendAuthenticationEmail);
   }
 
-  async verifyAuthenticationEmail(input: VerifyAuthEmailInput): Promise<VerifyAuthEmailResponse> {
+  async verifyAuthenticationEmail(email: string, code: string, publicStoreToken: string): Promise<VerifyAuthEmailResponse> {
     const mutation = `
       mutation VerifyAuthEmail($email: String!, $code: String!) {
         verifyAuthenticationEmail(input: { email: $email, code: $code }) {
@@ -40,13 +70,26 @@ export class AuthResource extends BaseResource {
         }
       }
     `;
-    return this._graphql<{ verifyAuthenticationEmail: VerifyAuthEmailResponse }>(
+
+    const headers = this.client.getPublicStoreTokenHeaders(publicStoreToken);
+    const result = await this._graphql<{ verifyAuthenticationEmail: VerifyAuthEmailResponse }>(
       mutation,
-      input as unknown as Record<string, unknown>
+      { email, code },
+      { headers }
     ).then((res) => res.verifyAuthenticationEmail);
+
+    if (result.token) {
+      this.client.setCustomerJWT(result.token);
+    }
+
+    return result;
   }
 
   async getMe(): Promise<User> {
+    if (!this.client.isCustomerAuthenticated()) {
+      throw new Error('Customer not authenticated. Call authenticate() first.');
+    }
+
     const query = `
       query GetMe {
         me {
@@ -61,12 +104,20 @@ export class AuthResource extends BaseResource {
     return this._graphql<{ me: User }>(query).then((res) => res.me);
   }
 
-  async logout(): Promise<boolean> {
+  logoutGraphQL(): Promise<boolean> {
     const mutation = `
       mutation Logout {
         logout
       }
     `;
     return this._graphql<{ logout: boolean }>(mutation).then((res) => res.logout);
+  }
+
+  logout(): void {
+    this.client.clearCustomerJWT();
+  }
+
+  isAuthenticated(): boolean {
+    return this.client.isCustomerAuthenticated();
   }
 }

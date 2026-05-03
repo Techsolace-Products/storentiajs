@@ -2,7 +2,15 @@ import { BaseResource } from './base';
 import { Cart, CartItem, AddToCartInput, UpdateCartItemInput, CartItemResponse } from '../types';
 
 export class CartResource extends BaseResource {
+  private requireAuth(): void {
+    if (!this.client.isCustomerAuthenticated()) {
+      throw new Error('Customer not authenticated. Call authenticate() first.');
+    }
+  }
+
   async get(): Promise<Cart> {
+    this.requireAuth();
+
     const query = `
       query {
         cart {
@@ -25,6 +33,8 @@ export class CartResource extends BaseResource {
   }
 
   async addItem(input: AddToCartInput): Promise<CartItemResponse> {
+    this.requireAuth();
+
     const mutation = `
       mutation AddToCart($productId: String!, $quantity: Int!) {
         addToCart(input: {
@@ -45,6 +55,8 @@ export class CartResource extends BaseResource {
   }
 
   async updateItem(input: UpdateCartItemInput): Promise<CartItem> {
+    this.requireAuth();
+
     const mutation = `
       mutation UpdateCartItem($cartItemId: String!, $quantity: Int!) {
         updateCartItem(input: {
@@ -63,6 +75,8 @@ export class CartResource extends BaseResource {
   }
 
   async removeItem(cartItemId: string): Promise<boolean> {
+    this.requireAuth();
+
     const mutation = `
       mutation RemoveFromCart($cartItemId: String!) {
         removeFromCart(cartItemId: $cartItemId)
@@ -74,6 +88,8 @@ export class CartResource extends BaseResource {
   }
 
   async clear(): Promise<boolean> {
+    this.requireAuth();
+
     const mutation = `
       mutation {
         clearCart
