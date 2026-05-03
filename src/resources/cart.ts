@@ -4,9 +4,14 @@ import { Cart, CartItem, AddToCartInput, UpdateCartItemInput, CartItemResponse }
 const PRODUCT_FIELDS = `
   fragment ProductFields on Product {
     id
-    name
+    title
     sellingPrice
     originalPrice
+    sku
+    media {
+      id
+      url
+    }
   }
 `;
 
@@ -28,6 +33,7 @@ export class CartResource extends BaseResource {
           customerId
           items {
             id
+            cartId
             productId
             quantity
             product { ...ProductFields }
@@ -54,6 +60,7 @@ export class CartResource extends BaseResource {
         }) {
           id
           cartId
+          productId
           quantity
           product { ...ProductFields }
         }
