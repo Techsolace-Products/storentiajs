@@ -1,6 +1,6 @@
 {
   "name": "@storentia/sdk",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Storentia API SDK for Node.js",
   "repository": {
     "type": "git",
