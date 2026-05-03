@@ -38,13 +38,15 @@ const { data, pageInfo } = await storentia.products.list({
 // Create product
 const newProduct = await storentia.products.create({
   title: 'T-Shirt',
-  price: 29.99,
+  sellingPrice: 29.99,
+  originalPrice: 39.99,
   sku: 'TSHIRT-001'
 });
 
 // Update product
 await storentia.products.update('product-id', {
-  price: 34.99
+  sellingPrice: 34.99,
+  originalPrice: 44.99
 });
 
 // Delete product
@@ -108,6 +110,33 @@ await storentia.products.removeFromCollection('collection-id', ['product-1']);
 const { data, pageInfo } = await storentia.products.listInventory({
   pagination: { page: 1, limit: 50 }
 });
+```
+
+### Cart
+
+Requires customer JWT authentication.
+
+```typescript
+// Get cart
+const cart = await storentia.cart.get();
+
+// Add item to cart
+const item = await storentia.cart.addItem({
+  productId: 'product-id',
+  quantity: 1
+});
+
+// Update cart item quantity
+await storentia.cart.updateItem({
+  cartItemId: 'cart-item-id',
+  quantity: 5
+});
+
+// Remove item from cart
+await storentia.cart.removeItem('cart-item-id');
+
+// Clear entire cart
+await storentia.cart.clear();
 ```
 
 ### Blog Posts
