@@ -14,6 +14,7 @@ export class ApiClient {
   private accessToken: string | null = null;
   private tokenExpiresAt: number | null = null;
   private apiKeyToken: string | null = null;
+  private customerJWT: string | null = null;
   private logger = new Logger('ApiClient');
 
   /**
@@ -90,6 +91,33 @@ export class ApiClient {
     return this.accessToken;
   }
 
+  setCustomerJWT(token: string): void {
+    this.customerJWT = token;
+    this.logger.debug(`Customer JWT set`);
+  }
+
+  getCustomerJWT(): string | null {
+    return this.customerJWT;
+  }
+
+  clearCustomerJWT(): void {
+    this.customerJWT = null;
+    this.logger.debug(`Customer JWT cleared`);
+  }
+
+  isCustomerAuthenticated(): boolean {
+    return this.customerJWT !== null;
+  }
+
+  getPublicStoreTokenHeaders(publicStoreToken: string): Record<string, string> {
+    if (!publicStoreToken) {
+      throw new Error('publicStoreToken is required for authentication');
+    }
+    return {
+      'x-store-token': publicStoreToken,
+    };
+  }
+
   /**
    * Check if the current token has expired
    * @private
@@ -153,11 +181,19 @@ export class ApiClient {
       headers['x-API-Key'] = this.apiKeyToken;
     }
 
+    if (this.customerJWT) {
+      headers['Authorization'] = `Bearer ${this.customerJWT}`;
+    }
+
     // Log sanitized headers
     const sanitizedHeaders = { ...headers };
     if (sanitizedHeaders['x-API-Key']) {
       sanitizedHeaders['x-API-Key'] =
         sanitizedHeaders['x-API-Key'].substring(0, 25) + '...';
+    }
+    if (sanitizedHeaders['Authorization']) {
+      sanitizedHeaders['Authorization'] =
+        sanitizedHeaders['Authorization'].substring(0, 25) + '...';
     }
     this.logger.debug(`Request headers:`, sanitizedHeaders);
 

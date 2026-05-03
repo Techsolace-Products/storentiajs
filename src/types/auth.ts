@@ -19,9 +19,22 @@ export interface AuthConfig {
   clientSecret: string;
 }
 
-export interface SendAuthEmailInput {
+export interface CustomerAuthResponse {
+  id: string;
   email: string;
   name: string;
+  token: string;
+}
+
+export interface CustomerAuthInput {
+  email: string;
+  password: string;
+  publicStoreToken: string;
+}
+
+export interface SendAuthEmailInput {
+  email: string;
+  publicStoreToken: string;
 }
 
 export interface SendAuthEmailResponse {
@@ -33,6 +46,7 @@ export interface SendAuthEmailResponse {
 export interface VerifyAuthEmailInput {
   email: string;
   code: string;
+  publicStoreToken: string;
 }
 
 export interface VerifyAuthEmailResponse {
