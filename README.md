@@ -118,25 +118,25 @@ Requires customer JWT authentication.
 
 ```typescript
 // Get cart
-const cart = await storentia.cart.get();
+const cart = await storentia.carts.get();
 
 // Add item to cart
-const item = await storentia.cart.addItem({
+const item = await storentia.carts.addItem({
   productId: 'product-id',
   quantity: 1
 });
 
 // Update cart item quantity
-await storentia.cart.updateItem({
+await storentia.carts.updateItem({
   cartItemId: 'cart-item-id',
   quantity: 5
 });
 
 // Remove item from cart
-await storentia.cart.removeItem('cart-item-id');
+await storentia.carts.removeItem('cart-item-id');
 
 // Clear entire cart
-await storentia.cart.clear();
+await storentia.carts.clear();
 ```
 
 ### Blog Posts

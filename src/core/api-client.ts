@@ -171,18 +171,15 @@ export class ApiClient {
       ...options?.headers,
     };
 
-    if (this.accessToken) {
+    // Customer auth takes priority - use either customer JWT or server access token, not both
+    if (this.customerJWT) {
+      headers['Authorization'] = `Bearer ${this.customerJWT}`;
+    } else if (this.apiKeyToken) {
+      headers['x-API-Key'] = this.apiKeyToken;
+    } else if (this.accessToken) {
       headers['x-API-Key'] = this.accessToken;
     } else {
       this.logger.warn(`No auth token available`);
-    }
-
-    if (this.apiKeyToken) {
-      headers['x-API-Key'] = this.apiKeyToken;
-    }
-
-    if (this.customerJWT) {
-      headers['Authorization'] = `Bearer ${this.customerJWT}`;
     }
 
     // Log sanitized headers
