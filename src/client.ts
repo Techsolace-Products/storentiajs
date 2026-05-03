@@ -9,6 +9,7 @@ import { ContactResource } from './resources/contacts';
 import { NewsletterResource } from './resources/newsletter';
 import { LinkSetResource } from './resources/linkset';
 import { CartResource } from './resources/cart';
+import { OrderResource } from './resources/orders';
 import { ClientConfig } from './types';
 
 /**
@@ -47,6 +48,8 @@ export class Storentia {
   public linksets: LinkSetResource;
   /** Access shopping cart operations (get, add, update, remove, clear) */
   public carts: CartResource;
+  /** Access order operations (create, get, update status, cancel) */
+  public orders: OrderResource;
 
   /**
    * Initialize the Storentia SDK with authentication credentials
@@ -65,6 +68,7 @@ export class Storentia {
     this.newsletter = new NewsletterResource(this.client);
     this.linksets = new LinkSetResource(this.client);
     this.carts = new CartResource(this.client);
+    this.orders = new OrderResource(this.client);
   }
 
   /**

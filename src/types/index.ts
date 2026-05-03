@@ -10,3 +10,4 @@ export * from './contacts';
 export * from './newsletter';
 export * from './linkset';
 export * from './cart';
+export * from './orders';
