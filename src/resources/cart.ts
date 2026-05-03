@@ -1,6 +1,15 @@
 import { BaseResource } from './base';
 import { Cart, CartItem, AddToCartInput, UpdateCartItemInput, CartItemResponse } from '../types';
 
+const PRODUCT_FIELDS = `
+  fragment ProductFields on Product {
+    id
+    name
+    sellingPrice
+    originalPrice
+  }
+`;
+
 export class CartResource extends BaseResource {
   private requireAuth(): void {
     if (!this.client.isCustomerAuthenticated()) {
@@ -12,6 +21,7 @@ export class CartResource extends BaseResource {
     this.requireAuth();
 
     const query = `
+      ${PRODUCT_FIELDS}
       query {
         cart {
           id
@@ -20,7 +30,7 @@ export class CartResource extends BaseResource {
             id
             productId
             quantity
-            product { id name price }
+            product { ...ProductFields }
             createdAt
             updatedAt
           }
@@ -36,6 +46,7 @@ export class CartResource extends BaseResource {
     this.requireAuth();
 
     const mutation = `
+      ${PRODUCT_FIELDS}
       mutation AddToCart($productId: String!, $quantity: Int!) {
         addToCart(input: {
           productId: $productId
@@ -44,7 +55,7 @@ export class CartResource extends BaseResource {
           id
           cartId
           quantity
-          product { id name }
+          product { ...ProductFields }
         }
       }
     `;
