@@ -5,12 +5,24 @@ const PRODUCT_FIELDS = `
   fragment ProductFields on Product {
     id
     title
-    sellingPrice
+    description
     originalPrice
+    sellingPrice
     sku
+    stock
+    status
+    storeId
     media {
       id
-      url
+      name
+      fileKey
+      mimeType
+      fileSize
+      metadata
+    }
+    collections {
+      id
+      name
     }
   }
 `;
@@ -27,7 +39,7 @@ export class CartResource extends BaseResource {
 
     const query = `
       ${PRODUCT_FIELDS}
-      query {
+      query GetCart {
         cart {
           id
           customerId
@@ -52,23 +64,31 @@ export class CartResource extends BaseResource {
     this.requireAuth();
 
     const mutation = `
-      ${PRODUCT_FIELDS}
-      mutation AddToCart($productId: String!, $quantity: Int!) {
-        addToCart(input: {
-          productId: $productId
-          quantity: $quantity
-        }) {
+      mutation AddToCart($input: AddToCartInput!) {
+        addToCart(input: $input) {
           id
           cartId
           productId
           quantity
-          product { ...ProductFields }
+          product {
+            id
+            title
+            originalPrice
+            sellingPrice
+            media {
+              id
+              name
+              fileKey
+            }
+          }
+          createdAt
+          updatedAt
         }
       }
     `;
     return this._graphql<{ addToCart: CartItemResponse }>(
       mutation,
-      input as unknown as Record<string, unknown>
+      { input }
     ).then((res) => res.addToCart);
   }
 
@@ -76,19 +96,26 @@ export class CartResource extends BaseResource {
     this.requireAuth();
 
     const mutation = `
-      mutation UpdateCartItem($cartItemId: String!, $quantity: Int!) {
-        updateCartItem(input: {
-          cartItemId: $cartItemId
-          quantity: $quantity
-        }) {
+      mutation UpdateCartItem($input: UpdateCartItemInput!) {
+        updateCartItem(input: $input) {
           id
+          cartId
+          productId
           quantity
+          product {
+            id
+            title
+            originalPrice
+            sellingPrice
+          }
+          createdAt
+          updatedAt
         }
       }
     `;
     return this._graphql<{ updateCartItem: CartItem }>(
       mutation,
-      input as unknown as Record<string, unknown>
+      { input }
     ).then((res) => res.updateCartItem);
   }
 
@@ -96,7 +123,7 @@ export class CartResource extends BaseResource {
     this.requireAuth();
 
     const mutation = `
-      mutation RemoveFromCart($cartItemId: String!) {
+      mutation RemoveFromCart($cartItemId: ID!) {
         removeFromCart(cartItemId: $cartItemId)
       }
     `;
@@ -109,7 +136,7 @@ export class CartResource extends BaseResource {
     this.requireAuth();
 
     const mutation = `
-      mutation {
+      mutation ClearCart {
         clearCart
       }
     `;
