@@ -36,7 +36,7 @@ export class NewsletterResource extends BaseResource {
 
   async deleteSubscriber(id: string): Promise<boolean> {
     const mutation = `
-      mutation DeleteNewsletterSubscriber($id: String!) {
+      mutation DeleteNewsletterSubscriber($id: UUID!) {
         deleteNewsletterSubscriber(id: $id)
       }
     `;
@@ -45,10 +45,10 @@ export class NewsletterResource extends BaseResource {
     );
   }
 
-  async listSubscribers(pagination: NewsletterPagination = { limit: 20, offset: 0 }): Promise<NewsletterSubscriber[]> {
+  async listSubscribers(pagination: NewsletterPagination = { page: 1, limit: 20 }): Promise<NewsletterSubscriber[]> {
     const query = `
-      query GetSubscribers($limit: Int!, $offset: Int!) {
-        newsLetterSubscribers(pagination: { limit: $limit, offset: $offset }) {
+      query GetSubscribers($page: Int, $limit: Int) {
+        newsLetterSubscribers(pagination: { page: $page, limit: $limit }) {
           id
           storeId
           email

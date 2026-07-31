@@ -6,7 +6,7 @@ import {
   VerifyAuthEmailInput,
   VerifyAuthEmailResponse,
   User,
-  CustomerAuthResponse,
+
 } from '../types';
 
 export class AuthResource extends BaseResource {
@@ -14,31 +14,8 @@ export class AuthResource extends BaseResource {
     return this.client.authenticate();
   }
 
-  async authenticate(email: string, password: string, publicStoreToken: string): Promise<CustomerAuthResponse> {
-    const mutation = `
-      mutation Authenticate($email: String!, $password: String!) {
-        authenticate(input: { email: $email, password: $password }) {
-          id
-          email
-          name
-          token
-        }
-      }
-    `;
-
-    const headers = this.client.getPublicStoreTokenHeaders(publicStoreToken);
-    const result = await this._graphql<{ authenticate: CustomerAuthResponse }>(
-      mutation,
-      { email, password },
-      { headers }
-    ).then((res) => res.authenticate);
-
-    if (result.token) {
-      this.client.setCustomerJWT(result.token);
-    }
-
-    return result;
-  }
+  // Customer auth is email-code only: sendAuthenticationEmail() then
+  // verifyAuthenticationEmail(). The storefront schema exposes no password login.
 
   async sendAuthenticationEmail(email: string, publicStoreToken: string): Promise<SendAuthEmailResponse> {
     const mutation = `
@@ -87,7 +64,7 @@ export class AuthResource extends BaseResource {
 
   async getMe(): Promise<User> {
     if (!this.client.isCustomerAuthenticated()) {
-      throw new Error('Customer not authenticated. Call authenticate() first.');
+      throw new Error('Customer not authenticated. Call auth.verifyAuthenticationEmail() first.');
     }
 
     const query = `

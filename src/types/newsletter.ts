@@ -13,9 +13,10 @@ export interface SubscribeInput {
   email: string;
 }
 
+/** Matches the server-side `PaginationInput` (page/limit, 1-indexed). */
 export interface NewsletterPagination {
-  limit: number;
-  offset: number;
+  page?: number;
+  limit?: number;
 }
 
 export interface NewsletterResponse {

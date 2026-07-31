@@ -30,7 +30,7 @@ const PRODUCT_FIELDS = `
 export class CartResource extends BaseResource {
   private requireAuth(): void {
     if (!this.client.isCustomerAuthenticated()) {
-      throw new Error('Customer not authenticated. Call authenticate() first.');
+      throw new Error('Customer not authenticated. Call auth.verifyAuthenticationEmail() first.');
     }
   }
 

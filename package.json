@@ -1,6 +1,6 @@
 {
   "name": "@storentia/sdk",
-  "version": "0.1.12",
+  "version": "0.2.0",
   "description": "Storentia API SDK for Node.js",
   "repository": {
     "type": "git",
@@ -39,6 +39,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "graphql": "^17.0.2",
     "typescript": "^5.0.0",
     "vitest": "^4.1.5"
   }

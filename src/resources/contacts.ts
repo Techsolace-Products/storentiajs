@@ -22,10 +22,10 @@ export class ContactResource extends BaseResource {
     ).then((res) => res.createContact);
   }
 
-  async list(pagination: ContactPagination = { limit: 10, offset: 0 }): Promise<Contact[]> {
+  async list(pagination: ContactPagination = { page: 1, limit: 10 }): Promise<Contact[]> {
     const query = `
-      query GetContacts($limit: Int!, $offset: Int!) {
-        contacts(pagination: { limit: $limit, offset: $offset }) {
+      query GetContacts($page: Int, $limit: Int) {
+        contacts(pagination: { page: $page, limit: $limit }) {
           id
           storeId
           name
@@ -45,7 +45,7 @@ export class ContactResource extends BaseResource {
 
   async getById(id: string): Promise<Contact> {
     const query = `
-      query GetContactById($id: String!) {
+      query GetContactById($id: UUID!) {
         contactById(id: $id) {
           id
           name
@@ -64,7 +64,7 @@ export class ContactResource extends BaseResource {
 
   async updateStatus(id: string, status: 'NEW' | 'RESOLVED' | 'PENDING'): Promise<Contact> {
     const mutation = `
-      mutation UpdateContactStatus($id: String!, $status: String!) {
+      mutation UpdateContactStatus($id: UUID!, $status: String!) {
         updateContactStatus(id: $id, status: $status) {
           id
           status
@@ -79,7 +79,7 @@ export class ContactResource extends BaseResource {
 
   async delete(id: string): Promise<boolean> {
     const mutation = `
-      mutation DeleteContact($id: String!) {
+      mutation DeleteContact($id: UUID!) {
         deleteContact(id: $id)
       }
     `;

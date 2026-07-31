@@ -10,6 +10,8 @@ import { NewsletterResource } from './resources/newsletter';
 import { LinkSetResource } from './resources/linkset';
 import { CartResource } from './resources/cart';
 import { OrderResource } from './resources/orders';
+import { MetafieldResource } from './resources/metafields';
+import { MetaobjectResource } from './resources/metaobjects';
 import { ClientConfig } from './types';
 
 /**
@@ -50,6 +52,10 @@ export class Storentia {
   public carts: CartResource;
   /** Access order operations (create, get, update status, cancel) */
   public orders: OrderResource;
+  /** Access metafield operations (definitions, set/read/delete custom field values) */
+  public metafields: MetafieldResource;
+  /** Access metaobject operations (definitions and structured records) */
+  public metaobjects: MetaobjectResource;
 
   /**
    * Initialize the Storentia SDK with authentication credentials
@@ -69,6 +75,8 @@ export class Storentia {
     this.linksets = new LinkSetResource(this.client);
     this.carts = new CartResource(this.client);
     this.orders = new OrderResource(this.client);
+    this.metafields = new MetafieldResource(this.client);
+    this.metaobjects = new MetaobjectResource(this.client);
   }
 
   /**

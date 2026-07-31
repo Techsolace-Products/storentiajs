@@ -161,6 +161,70 @@ await storentia.pages.update('page-id', { pageTitle: 'Updated' });
 await storentia.pages.delete('page-id');
 ```
 
+### Metafields
+
+Custom typed key/value data on products, variants, collections, customers, orders, or the store.
+
+```typescript
+import { MetafieldOwnerType, MetafieldType } from '@storentia/sdk';
+
+// Define the field once
+await storentia.metafields.createDefinition({
+  storeId,
+  ownerType: MetafieldOwnerType.PRODUCT,
+  namespace: 'custom',
+  key: 'care_instructions',
+  name: 'Care Instructions',
+  type: MetafieldType.MULTI_LINE_TEXT,
+});
+
+// Set values (upsert by ownerType + ownerId + namespace + key)
+await storentia.metafields.set([{
+  ownerType: MetafieldOwnerType.PRODUCT,
+  ownerId: productId,
+  namespace: 'custom',
+  key: 'care_instructions',
+  value: 'Machine wash cold',
+  type: MetafieldType.MULTI_LINE_TEXT,
+}]);
+
+// Read / list / delete
+const fields = await storentia.metafields.list(MetafieldOwnerType.PRODUCT, productId);
+const defs = await storentia.metafields.listDefinitions(MetafieldOwnerType.PRODUCT);
+await storentia.metafields.delete(metafieldId);
+await storentia.metafields.deleteDefinition(definitionId);
+```
+
+`value` is always a string on the wire — decode it according to `type`.
+
+### Metaobjects
+
+Standalone structured records (size charts, FAQ entries, store locations) addressed by handle.
+
+```typescript
+await storentia.metaobjects.createDefinition({
+  storeId,
+  type: 'size_chart',
+  name: 'Size Chart',
+  fieldDefinitions: [
+    { key: 'region', name: 'Region', type: MetafieldType.SINGLE_LINE_TEXT, required: true },
+    { key: 'chart', name: 'Chart', type: MetafieldType.JSON },
+  ],
+});
+
+await storentia.metaobjects.create({
+  storeId,
+  definitionType: 'size_chart',
+  handle: 'mens-tops-eu',
+  fields: [{ key: 'region', value: 'EU' }],
+});
+
+const charts = await storentia.metaobjects.list('size_chart');
+const one = await storentia.metaobjects.get(metaobjectId);
+await storentia.metaobjects.update(metaobjectId, { ...input });
+await storentia.metaobjects.delete(metaobjectId);
+```
+
 ## Error Handling
 
 ```typescript

@@ -5,14 +5,14 @@ import {
   CreateOrderResponse,
   UpdateOrderStatusResponse,
   CancelOrderResponse,
-  PaginatedOrders,
+  OrderPagination,
   OrderStatus,
 } from '../types';
 
 export class OrderResource extends BaseResource {
   private requireAuth(): void {
     if (!this.client.isCustomerAuthenticated()) {
-      throw new Error('Customer not authenticated. Call authenticate() first.');
+      throw new Error('Customer not authenticated. Call auth.verifyAuthenticationEmail() first.');
     }
   }
 
@@ -20,7 +20,7 @@ export class OrderResource extends BaseResource {
     this.requireAuth();
 
     const query = `
-      query GetOrder($id: String!) {
+      query GetOrder($id: UUID!) {
         order(id: $id) {
           id
           customerId
@@ -38,7 +38,7 @@ export class OrderResource extends BaseResource {
             price
             product {
               id
-              name
+              title
             }
           }
           customer {
@@ -53,75 +53,69 @@ export class OrderResource extends BaseResource {
     return this._graphql<{ order: Order }>(query, { id: orderId }).then((res) => res.order);
   }
 
-  async getOrders(pagination?: any): Promise<PaginatedOrders> {
+  /**
+   * List orders. The server returns a plain list — there is no pageInfo envelope
+   * on this field, so slice with `pagination` and track your own cursor.
+   */
+  async getOrders(pagination?: OrderPagination, storeId?: string): Promise<Order[]> {
     this.requireAuth();
 
     const query = `
-      query GetOrders($page: Int, $limit: Int) {
-        orders(pagination: { page: $page, limit: $limit }) {
-          data {
+      query GetOrders($storeId: UUID, $page: Int, $limit: Int) {
+        orders(storeId: $storeId, pagination: { page: $page, limit: $limit }) {
+          id
+          customerId
+          totalAmount
+          status
+          paymentStatus
+          createdAt
+          items {
             id
-            customerId
-            totalAmount
-            status
-            paymentStatus
-            createdAt
-            items {
-              id
-              quantity
-              price
-            }
-          }
-          pageInfo {
-            page
-            limit
-            total
-            pages
+            quantity
+            price
           }
         }
       }
     `;
 
-    return this._graphql<{ orders: PaginatedOrders }>(
-      query,
-      pagination as unknown as Record<string, unknown>
-    ).then((res) => res.orders);
+    return this._graphql<{ orders: Order[] }>(query, {
+      storeId,
+      ...pagination,
+    } as unknown as Record<string, unknown>).then((res) => res.orders);
   }
 
-  async getCustomerOrders(customerId: string, pagination?: any): Promise<PaginatedOrders> {
+  /** List a single customer's orders. Also a plain list — see {@link getOrders}. */
+  async getCustomerOrders(
+    customerId: string,
+    pagination?: OrderPagination,
+    storeId?: string
+  ): Promise<Order[]> {
     this.requireAuth();
 
     const query = `
-      query GetCustomerOrders($customerId: String!, $page: Int, $limit: Int) {
-        customerOrders(customerId: $customerId, pagination: { page: $page, limit: $limit }) {
-          data {
+      query GetCustomerOrders($customerId: UUID!, $storeId: UUID, $page: Int, $limit: Int) {
+        customerOrders(customerId: $customerId, storeId: $storeId, pagination: { page: $page, limit: $limit }) {
+          id
+          totalAmount
+          currency
+          status
+          paymentStatus
+          createdAt
+          items {
             id
-            totalAmount
-            currency
-            status
-            paymentStatus
-            createdAt
-            items {
-              id
-              productId
-              quantity
-              price
-            }
-          }
-          pageInfo {
-            page
-            limit
-            total
-            pages
+            productId
+            quantity
+            price
           }
         }
       }
     `;
 
-    return this._graphql<{ customerOrders: PaginatedOrders }>(
-      query,
-      { customerId, ...pagination } as unknown as Record<string, unknown>
-    ).then((res) => res.customerOrders);
+    return this._graphql<{ customerOrders: Order[] }>(query, {
+      customerId,
+      storeId,
+      ...pagination,
+    } as unknown as Record<string, unknown>).then((res) => res.customerOrders);
   }
 
   async createOrder(input: CreateOrderInput): Promise<CreateOrderResponse> {
@@ -159,7 +153,7 @@ export class OrderResource extends BaseResource {
 
   async updateOrderStatus(orderId: string, status: OrderStatus): Promise<UpdateOrderStatusResponse> {
     const mutation = `
-      mutation UpdateOrderStatus($orderId: String!, $status: OrderStatus!) {
+      mutation UpdateOrderStatus($orderId: UUID!, $status: OrderStatus!) {
         updateOrderStatus(orderId: $orderId, status: $status) {
           success
           message
@@ -182,7 +176,7 @@ export class OrderResource extends BaseResource {
     this.requireAuth();
 
     const mutation = `
-      mutation CancelOrder($orderId: String!) {
+      mutation CancelOrder($orderId: UUID!) {
         cancelOrder(orderId: $orderId) {
           success
           message

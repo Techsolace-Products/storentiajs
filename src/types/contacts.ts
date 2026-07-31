@@ -15,7 +15,8 @@ export interface CreateContactInput {
   message: string;
 }
 
+/** Matches the server-side `PaginationInput` (page/limit, 1-indexed). */
 export interface ContactPagination {
-  limit: number;
-  offset: number;
+  page?: number;
+  limit?: number;
 }

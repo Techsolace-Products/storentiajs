@@ -1,5 +1,6 @@
 export enum OrderStatus {
   PENDING = 'PENDING',
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
@@ -21,7 +22,7 @@ export interface OrderItem {
   price: number;
   product?: {
     id: string;
-    name: string;
+    title: string;
   };
 }
 
@@ -77,14 +78,10 @@ export interface CancelOrderResponse {
 }
 
 
-export interface PaginatedOrders {
-  data: Order[];
-  pageInfo: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
+/** Matches the server-side `PaginationInput` (page/limit, 1-indexed). */
+export interface OrderPagination {
+  page?: number;
+  limit?: number;
 }
 
 export interface PaymentCallbackInput {
