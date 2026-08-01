@@ -21,7 +21,7 @@ function walk(dir: string): string[] {
 
 const RESOURCES = [
   'auth', 'products', 'blogs', 'pages', 'collections', 'media',
-  'contacts', 'newsletter', 'linksets', 'carts', 'orders',
+  'contacts', 'newsletter', 'linksets', 'carts', 'orders', 'discounts',
   'metafields', 'metaobjects',
 ] as const;
 

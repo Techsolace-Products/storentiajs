@@ -23,7 +23,8 @@ export class ApiClient {
   constructor(config: ClientConfig) {
     this.clientId = config.clientId;
     this.clientSecret = config.clientSecret;
-    this.baseUrl = 'https://apis.storentia.com';
+    // config.baseUrl targets a local or staging API; production is the default.
+    this.baseUrl = (config.baseUrl || 'https://apis.storentia.com').replace(/\/+$/, '');
     this.timeout = config.timeout || 30000;
   }
 

@@ -11,5 +11,6 @@ export * from './newsletter';
 export * from './linkset';
 export * from './cart';
 export * from './orders';
+export * from './discounts';
 export * from './metafields';
 export * from './metaobjects';

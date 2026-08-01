@@ -10,6 +10,7 @@ import { NewsletterResource } from './resources/newsletter';
 import { LinkSetResource } from './resources/linkset';
 import { CartResource } from './resources/cart';
 import { OrderResource } from './resources/orders';
+import { DiscountResource } from './resources/discounts';
 import { MetafieldResource } from './resources/metafields';
 import { MetaobjectResource } from './resources/metaobjects';
 import { ClientConfig } from './types';
@@ -52,6 +53,8 @@ export class Storentia {
   public carts: CartResource;
   /** Access order operations (create, get, update status, cancel) */
   public orders: OrderResource;
+  /** Access discount code operations (validate, look up, list) */
+  public discounts: DiscountResource;
   /** Access metafield operations (definitions, set/read/delete custom field values) */
   public metafields: MetafieldResource;
   /** Access metaobject operations (definitions and structured records) */
@@ -75,6 +78,7 @@ export class Storentia {
     this.linksets = new LinkSetResource(this.client);
     this.carts = new CartResource(this.client);
     this.orders = new OrderResource(this.client);
+    this.discounts = new DiscountResource(this.client);
     this.metafields = new MetafieldResource(this.client);
     this.metaobjects = new MetaobjectResource(this.client);
   }
@@ -93,5 +97,23 @@ export class Storentia {
    */
   getAccessToken(): string | null {
     return this.client.getAccessToken();
+  }
+
+  /**
+   * Restore a customer session from a previously issued JWT (e.g. one kept in a
+   * cookie by a server-rendered storefront), instead of re-running the email
+   * code flow on every request.
+   * @param token - Customer JWT returned by auth.verifyAuthenticationEmail()
+   */
+  setCustomerToken(token: string): void {
+    this.client.setCustomerJWT(token);
+  }
+
+  /**
+   * Get the customer JWT currently attached to this client
+   * @returns Token string, or null when no customer is signed in
+   */
+  getCustomerToken(): string | null {
+    return this.client.getCustomerJWT();
   }
 }
