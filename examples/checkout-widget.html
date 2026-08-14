@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  Browser half of the checkout flow (see checkout-flow.ts for the server half).
+
+  Your backend already called storentia.orders.createOrder() and has an
+  { order, checkout } pair. Render this page with those two values templated
+  in below (or fetch them from your own "start checkout" endpoint), open the
+  Razorpay widget, and post the result back through the GraphQL endpoint the
+  same way storentia.orders.confirmPayment() does.
+-->
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Storentia Checkout</title>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body style="font-family: sans-serif; max-width: 420px; margin: 4rem auto;">
+  <h2>Complete your payment</h2>
+  <p id="status">Ready to pay.</p>
+  <button id="pay">Pay now</button>
+
+  <script>
+    // --- Replace these three with what your backend returned from createOrder() ---
+    const GRAPHQL_ENDPOINT = "https://apis.storentia.com/graphql"; // storefront GraphQL URL
+    const CUSTOMER_JWT = "REPLACE_WITH_CUSTOMER_JWT";               // from auth.verifyAuthenticationEmail()
+    const order = /* order returned by createOrder() */ {
+      id: "REPLACE_ORDER_ID",
+    };
+    const checkout = /* checkout returned by createOrder() */ {
+      provider: "razorpay",
+      publicKey: "REPLACE_RAZORPAY_KEY_ID",
+      gatewayOrderId: "REPLACE_RAZORPAY_ORDER_ID",
+      amountMinor: 199900,
+      currency: "INR",
+    };
+    // --------------------------------------------------------------------------
+
+    async function confirmPayment(response) {
+      const mutation = `
+        mutation ConfirmOrderPayment($input: ConfirmPaymentInput!) {
+          confirmOrderPayment(input: $input) {
+            success
+            message
+            order { id status paymentStatus }
+          }
+        }
+      `;
+      const res = await fetch(GRAPHQL_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${CUSTOMER_JWT}`,
+        },
+        body: JSON.stringify({
+          query: mutation,
+          variables: {
+            input: {
+              orderId: order.id,
+              gatewayOrderId: response.razorpay_order_id,
+              gatewayPaymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            },
+          },
+        }),
+      });
+      const { data, errors } = await res.json();
+      if (errors || !data.confirmOrderPayment.success) {
+        document.getElementById("status").textContent =
+          "Payment could not be confirmed: " +
+          (errors?.[0]?.message || data.confirmOrderPayment.message);
+        return;
+      }
+      document.getElementById("status").textContent =
+        `Order ${data.confirmOrderPayment.order.id} is now ${data.confirmOrderPayment.order.status}.`;
+    }
+
+    document.getElementById("pay").onclick = () => {
+      const rzp = new Razorpay({
+        key: checkout.publicKey,
+        order_id: checkout.gatewayOrderId,
+        amount: checkout.amountMinor,
+        currency: checkout.currency,
+        name: "Checkout",
+        handler: confirmPayment,
+        modal: {
+          // The gateway callback can still arrive after a dismissed modal —
+          // that's what the order workers' reconciler (SyncPayment) is for.
+          ondismiss: () => {
+            document.getElementById("status").textContent = "Payment cancelled.";
+          },
+        },
+      });
+      rzp.open();
+    };
+  </script>
+</body>
+</html>

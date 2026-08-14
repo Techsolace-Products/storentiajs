@@ -2,8 +2,24 @@ import { UUID } from './common';
 
 export interface CartProduct {
   id: UUID;
-  name: string;
-  price?: number;
+  title: string;
+  description?: string;
+  originalPrice: number;
+  sellingPrice: number;
+  sku?: string;
+  /** Only present on cart.get() — addToCart()'s response doesn't fetch these. */
+  stock?: number;
+  status?: string;
+  storeId?: UUID;
+  media?: Array<{
+    id: UUID;
+    name: string;
+    fileKey: string;
+    mimeType: string;
+    fileSize: number;
+    metadata?: unknown;
+  }>;
+  collections?: Array<{ id: UUID; name: string }>;
 }
 
 export interface CartItem {

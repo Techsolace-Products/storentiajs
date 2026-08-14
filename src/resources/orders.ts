@@ -7,6 +7,9 @@ import {
   CancelOrderResponse,
   OrderPagination,
   OrderStatus,
+  ConfirmPaymentInput,
+  ConfirmPaymentResponse,
+  PaymentCapability,
 } from '../types';
 
 export class OrderResource extends BaseResource {
@@ -133,6 +136,51 @@ export class OrderResource extends BaseResource {
           order {
             id
             totalAmount
+            currency
+            status
+            paymentStatus
+            items {
+              id
+              quantity
+              price
+            }
+          }
+          checkout {
+            provider
+            appId
+            gatewayOrderId
+            publicKey
+            amountMinor
+            currency
+            mode
+          }
+        }
+      }
+    `;
+
+    return this._graphql<{ createOrder: CreateOrderResponse }>(
+      mutation,
+      input as unknown as Record<string, unknown>
+    ).then((res) => res.createOrder);
+  }
+
+  /**
+   * Settle a gateway callback (e.g. Razorpay's `handler` payload) against an
+   * order. The server re-verifies the signature with the merchant's secret —
+   * this call only reports what the browser saw.
+   */
+  async confirmPayment(input: ConfirmPaymentInput): Promise<ConfirmPaymentResponse> {
+    this.requireAuth();
+
+    const mutation = `
+      mutation ConfirmOrderPayment($input: ConfirmPaymentInput!) {
+        confirmOrderPayment(input: $input) {
+          success
+          message
+          order {
+            id
+            totalAmount
+            currency
             status
             paymentStatus
             items {
@@ -145,10 +193,25 @@ export class OrderResource extends BaseResource {
       }
     `;
 
-    return this._graphql<{ createOrder: CreateOrderResponse }>(
-      mutation,
-      input as unknown as Record<string, unknown>
-    ).then((res) => res.createOrder);
+    return this._graphql<{ confirmOrderPayment: ConfirmPaymentResponse }>(mutation, {
+      input,
+    }).then((res) => res.confirmOrderPayment);
+  }
+
+  /** Check whether a store can take payments before rendering a checkout button. */
+  async paymentCapability(storeId: string): Promise<PaymentCapability> {
+    const query = `
+      query PaymentCapability($storeId: UUID!) {
+        paymentCapability(storeId: $storeId) {
+          available
+          reason
+        }
+      }
+    `;
+
+    return this._graphql<{ paymentCapability: PaymentCapability }>(query, { storeId }).then(
+      (res) => res.paymentCapability
+    );
   }
 
   async updateOrderStatus(orderId: string, status: OrderStatus): Promise<UpdateOrderStatusResponse> {

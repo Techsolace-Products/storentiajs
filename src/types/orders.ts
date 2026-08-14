@@ -54,10 +54,51 @@ export interface CreateOrderInput {
   }>;
 }
 
+/**
+ * Everything the browser needs to open the store's payment gateway. All of it
+ * is publishable — the merchant's secret key never leaves the platform.
+ */
+export interface Checkout {
+  provider: string;
+  appId: string;
+  gatewayOrderId: string;
+  publicKey: string;
+  amountMinor: number;
+  currency: string;
+  /** "test" or "live", matching the credentials the merchant configured. */
+  mode: string;
+}
+
+/** Whether this store can take money at all. */
+export interface PaymentCapability {
+  available: boolean;
+  reason?: string;
+}
+
+/**
+ * A gateway callback as reported by the browser (e.g. Razorpay's `handler`
+ * response). Every field is re-verified server side against the merchant's
+ * secret before the order moves — none of it is trusted on arrival.
+ */
+export interface ConfirmPaymentInput {
+  orderId: string;
+  gatewayOrderId: string;
+  gatewayPaymentId: string;
+  signature: string;
+}
+
 export interface CreateOrderResponse {
   success: boolean;
   message: string;
   order: Order;
+  /** Present when the order still needs payment; null once it doesn't. */
+  checkout: Checkout | null;
+}
+
+export interface ConfirmPaymentResponse {
+  success: boolean;
+  message: string;
+  order: Order | null;
 }
 
 export interface UpdateOrderStatusInput {
