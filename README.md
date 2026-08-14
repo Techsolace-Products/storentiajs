@@ -139,6 +139,49 @@ await storentia.carts.removeItem('cart-item-id');
 await storentia.carts.clear();
 ```
 
+### Orders & Checkout
+
+Requires customer JWT authentication. `createOrder` places the order and opens
+a gateway checkout (Razorpay) in one call — nothing it returns is a secret,
+the merchant's gateway key never leaves the platform.
+
+```typescript
+// Check the store can take payments before rendering a checkout button
+const { available, reason } = await storentia.orders.paymentCapability(storeId);
+
+// Create the order — returns both the order and what the browser needs
+// to open the gateway widget
+const { order, checkout } = await storentia.orders.createOrder({
+  currency: 'INR',
+  totalAmount: 199.99,
+  items: [{ productId: 'product-id', quantity: 2, price: 99.99 }],
+});
+// checkout: { provider, appId, gatewayOrderId, publicKey, amountMinor, currency, mode }
+
+// In the browser: open Razorpay Checkout.js with `checkout`, then hand its
+// callback (razorpay_order_id / razorpay_payment_id / razorpay_signature)
+// back here. The server re-verifies the signature against the merchant's
+// own secret — nothing from the browser is trusted directly.
+const { order: settled } = await storentia.orders.confirmPayment({
+  orderId: order.id,
+  gatewayOrderId: response.razorpay_order_id,
+  gatewayPaymentId: response.razorpay_payment_id,
+  signature: response.razorpay_signature,
+});
+
+// Get / list orders
+const order = await storentia.orders.getOrder('order-id');
+const orders = await storentia.orders.getOrders({ page: 1, limit: 20 });
+const customerOrders = await storentia.orders.getCustomerOrders('customer-id');
+
+// Cancel
+await storentia.orders.cancelOrder('order-id');
+```
+
+See [`examples/checkout-flow.ts`](./examples/checkout-flow.ts) for the full
+server-side flow and [`examples/checkout-widget.html`](./examples/checkout-widget.html)
+for the browser half that opens the Razorpay widget and confirms the payment.
+
 ### Blog Posts
 
 ```typescript
