@@ -58,6 +58,44 @@ export class OrderResource extends BaseResource {
   }
 
   /**
+   * List the authenticated customer's own orders. Scoped server-side from the
+   * JWT — unlike {@link getOrders}/{@link getCustomerOrders} there's no
+   * customerId/storeId to pass or spoof. Prefer this for a customer-facing
+   * "my orders" page.
+   */
+  async getMyOrders(pagination?: OrderPagination): Promise<Order[]> {
+    this.requireAuth();
+
+    const query = `
+      query GetMyOrders($page: Int, $limit: Int) {
+        myOrders(pagination: { page: $page, limit: $limit }) {
+          id
+          customerId
+          totalAmount
+          currency
+          status
+          paymentStatus
+          createdAt
+          items {
+            id
+            productId
+            quantity
+            price
+            product {
+              id
+              title
+            }
+          }
+        }
+      }
+    `;
+
+    return this._graphql<{ myOrders: Order[] }>(query, {
+      ...pagination,
+    } as unknown as Record<string, unknown>).then((res) => res.myOrders);
+  }
+
+  /**
    * List orders. The server returns a plain list — there is no pageInfo envelope
    * on this field, so slice with `pagination` and track your own cursor.
    */
