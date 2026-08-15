@@ -112,6 +112,45 @@ const { data, pageInfo } = await storentia.products.listInventory({
 });
 ```
 
+### Customers
+
+Auth is email-code only, not password based.
+
+```typescript
+// 1. Email the customer a one-time code
+await storentia.auth.sendAuthenticationEmail('shopper@example.com', publicStoreToken);
+
+// 2. Exchange the code for a customer JWT — this attaches the JWT to the
+// SDK instance, so every call below just works
+const { id, email, name, token } = await storentia.auth.verifyAuthenticationEmail(
+  'shopper@example.com',
+  '123456',
+  publicStoreToken
+);
+
+// Current customer's profile
+const me = await storentia.auth.getMe();
+
+// Update profile fields
+await storentia.auth.updateMe({ name: 'Jane Doe' });
+
+// Addresses
+const addresses = await storentia.auth.getAddresses();
+const address = await storentia.auth.addAddress({
+  line1: '221B Baker Street',
+  city: 'London',
+  postalCode: 'NW1 6XE',
+  country: 'GB',
+  isDefault: true,
+});
+await storentia.auth.updateAddress(address.id, { city: 'Manchester' });
+await storentia.auth.setDefaultAddress(address.id);
+await storentia.auth.deleteAddress(address.id);
+
+// Sign out (forgets the local JWT; logoutGraphQL() also invalidates it server-side)
+storentia.auth.logout();
+```
+
 ### Cart
 
 Requires customer JWT authentication.
