@@ -211,8 +211,11 @@ if (checkout.provider === 'Razorpay') {
   });
 }
 // Gateways with no client-side signature (Cashfree) skip confirmPayment
-// entirely — poll getOrder(orderId) instead and let the backend's own
-// reconciler settle it by asking the gateway directly.
+// entirely — call syncPayment instead, once the widget reports the
+// checkout finished. It asks the gateway directly, no callback needed.
+if (checkout.provider === 'Cashfree') {
+  const { order: settled } = await storentia.orders.syncPayment(order.id);
+}
 
 // Get / list orders
 const order = await storentia.orders.getOrder('order-id');

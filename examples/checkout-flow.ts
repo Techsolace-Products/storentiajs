@@ -64,13 +64,15 @@ async function main() {
   // 5. Hand `checkout` to the browser. It's fully publishable — see
   //    checkout-widget.html, which branches on checkout.provider to open
   //    the right gateway's widget (Razorpay and Cashfree work differently:
-  //    Razorpay hands back a signature the browser can confirm immediately,
-  //    Cashfree does not, and relies on the backend's reconciler instead).
+  //    Razorpay hands back a signature the browser confirms immediately via
+  //    confirmPayment; Cashfree hands back nothing to verify, so the caller
+  //    calls syncPayment(order.id) instead, which asks Cashfree directly).
   //    Never assume a specific provider here — a store only ever returns
   //    the gateway it actually has configured.
 
-  // 6. After confirmPayment resolves (or on a page reload / return_url visit),
-  //    poll for the final state — the gateway callback can lag the redirect.
+  // 6. After confirmPayment/syncPayment resolves (or on a page reload /
+  //    return_url visit), poll for the final state — a gateway callback or
+  //    the reconciler can still lag behind either call.
   const settled = await pollUntilSettled(order.id);
   console.log(`Order ${settled.id} is now ${settled.status} / ${settled.paymentStatus}`);
 }

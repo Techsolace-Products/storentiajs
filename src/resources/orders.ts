@@ -9,6 +9,7 @@ import {
   OrderStatus,
   ConfirmPaymentInput,
   ConfirmPaymentResponse,
+  SyncPaymentResponse,
   PaymentCapability,
 } from '../types';
 
@@ -196,6 +197,40 @@ export class OrderResource extends BaseResource {
     return this._graphql<{ confirmOrderPayment: ConfirmPaymentResponse }>(mutation, {
       input,
     }).then((res) => res.confirmOrderPayment);
+  }
+
+  /**
+   * Settle an order by asking the gateway directly, instead of verifying a
+   * client callback. Use this for gateways like Cashfree, whose browser SDK
+   * never hands the shopper a signed payload to pass to {@link confirmPayment}.
+   */
+  async syncPayment(orderId: string): Promise<SyncPaymentResponse> {
+    this.requireAuth();
+
+    const mutation = `
+      mutation SyncOrderPayment($orderId: UUID!) {
+        syncOrderPayment(orderId: $orderId) {
+          success
+          message
+          order {
+            id
+            totalAmount
+            currency
+            status
+            paymentStatus
+            items {
+              id
+              quantity
+              price
+            }
+          }
+        }
+      }
+    `;
+
+    return this._graphql<{ syncOrderPayment: SyncPaymentResponse }>(mutation, {
+      orderId,
+    }).then((res) => res.syncOrderPayment);
   }
 
   /** Check whether a store can take payments before rendering a checkout button. */

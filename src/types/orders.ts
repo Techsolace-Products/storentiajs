@@ -101,6 +101,12 @@ export interface ConfirmPaymentResponse {
   order: Order | null;
 }
 
+/**
+ * Result of settling an order by asking the gateway directly, for gateways
+ * (e.g. Cashfree) whose browser SDK hands back no signed callback to verify.
+ */
+export type SyncPaymentResponse = ConfirmPaymentResponse;
+
 export interface UpdateOrderStatusInput {
   orderId: string;
   status: OrderStatus;
