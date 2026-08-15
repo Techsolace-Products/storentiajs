@@ -6,8 +6,27 @@ import {
   VerifyAuthEmailInput,
   VerifyAuthEmailResponse,
   User,
-
+  UpdateMeInput,
+  Address,
+  AddressInput,
+  UpdateAddressInput,
 } from '../types';
+
+const ADDRESS_FIELDS = `
+  id
+  customerId
+  fullName
+  phone
+  line1
+  line2
+  city
+  state
+  postalCode
+  country
+  isDefault
+  createdAt
+  updatedAt
+`;
 
 export class AuthResource extends BaseResource {
   async getToken(): Promise<AuthResponse> {
@@ -63,9 +82,7 @@ export class AuthResource extends BaseResource {
   }
 
   async getMe(): Promise<User> {
-    if (!this.client.isCustomerAuthenticated()) {
-      throw new Error('Customer not authenticated. Call auth.verifyAuthenticationEmail() first.');
-    }
+    this.requireCustomerAuth();
 
     const query = `
       query GetMe {
@@ -79,6 +96,94 @@ export class AuthResource extends BaseResource {
       }
     `;
     return this._graphql<{ me: User }>(query).then((res) => res.me);
+  }
+
+  async updateMe(input: UpdateMeInput): Promise<User> {
+    this.requireCustomerAuth();
+
+    const mutation = `
+      mutation UpdateMe($input: UpdateMeInput!) {
+        updateMe(input: $input) {
+          id
+          email
+          name
+          createdAt
+          updatedAt
+        }
+      }
+    `;
+    return this._graphql<{ updateMe: User }>(mutation, { input }).then((res) => res.updateMe);
+  }
+
+  async getAddresses(): Promise<Address[]> {
+    this.requireCustomerAuth();
+
+    const query = `
+      query GetAddresses {
+        me {
+          addresses {
+            ${ADDRESS_FIELDS}
+          }
+        }
+      }
+    `;
+    return this._graphql<{ me: { addresses: Address[] } }>(query).then((res) => res.me.addresses);
+  }
+
+  async addAddress(input: AddressInput): Promise<Address> {
+    this.requireCustomerAuth();
+
+    const mutation = `
+      mutation AddAddress($input: AddressInput!) {
+        addAddress(input: $input) {
+          ${ADDRESS_FIELDS}
+        }
+      }
+    `;
+    return this._graphql<{ addAddress: Address }>(mutation, { input }).then((res) => res.addAddress);
+  }
+
+  async updateAddress(id: string, input: UpdateAddressInput): Promise<Address> {
+    this.requireCustomerAuth();
+
+    const mutation = `
+      mutation UpdateAddress($id: UUID!, $input: UpdateAddressInput!) {
+        updateAddress(id: $id, input: $input) {
+          ${ADDRESS_FIELDS}
+        }
+      }
+    `;
+    return this._graphql<{ updateAddress: Address }>(mutation, { id, input }).then((res) => res.updateAddress);
+  }
+
+  async deleteAddress(id: string): Promise<boolean> {
+    this.requireCustomerAuth();
+
+    const mutation = `
+      mutation DeleteAddress($id: UUID!) {
+        deleteAddress(id: $id)
+      }
+    `;
+    return this._graphql<{ deleteAddress: boolean }>(mutation, { id }).then((res) => res.deleteAddress);
+  }
+
+  async setDefaultAddress(id: string): Promise<Address> {
+    this.requireCustomerAuth();
+
+    const mutation = `
+      mutation SetDefaultAddress($id: UUID!) {
+        setDefaultAddress(id: $id) {
+          ${ADDRESS_FIELDS}
+        }
+      }
+    `;
+    return this._graphql<{ setDefaultAddress: Address }>(mutation, { id }).then((res) => res.setDefaultAddress);
+  }
+
+  private requireCustomerAuth(): void {
+    if (!this.client.isCustomerAuthenticated()) {
+      throw new Error('Customer not authenticated. Call auth.verifyAuthenticationEmail() first.');
+    }
   }
 
   logoutGraphQL(): Promise<boolean> {

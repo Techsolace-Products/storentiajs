@@ -62,23 +62,12 @@ async function main() {
   console.log(`Order ${order.id} created, awaiting payment via ${checkout.provider}`);
 
   // 5. Hand `checkout` to the browser. It's fully publishable — see
-  //    checkout-widget.html for the Razorpay side of this handoff.
-  //
-  //   const rzp = new Razorpay({
-  //     key: checkout.publicKey,
-  //     order_id: checkout.gatewayOrderId,
-  //     amount: checkout.amountMinor,
-  //     currency: checkout.currency,
-  //     handler: async (response) => {
-  //       await storentia.orders.confirmPayment({
-  //         orderId: order.id,
-  //         gatewayOrderId: response.razorpay_order_id,
-  //         gatewayPaymentId: response.razorpay_payment_id,
-  //         signature: response.razorpay_signature,
-  //       });
-  //     },
-  //   });
-  //   rzp.open();
+  //    checkout-widget.html, which branches on checkout.provider to open
+  //    the right gateway's widget (Razorpay and Cashfree work differently:
+  //    Razorpay hands back a signature the browser can confirm immediately,
+  //    Cashfree does not, and relies on the backend's reconciler instead).
+  //    Never assume a specific provider here — a store only ever returns
+  //    the gateway it actually has configured.
 
   // 6. After confirmPayment resolves (or on a page reload / return_url visit),
   //    poll for the final state — the gateway callback can lag the redirect.

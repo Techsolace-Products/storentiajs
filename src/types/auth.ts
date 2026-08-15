@@ -63,3 +63,47 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UpdateMeInput {
+  name?: string;
+}
+
+export interface Address {
+  id: string;
+  customerId: string;
+  fullName: string | null;
+  phone: string | null;
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string | null;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddressInput {
+  fullName?: string;
+  phone?: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state?: string;
+  postalCode: string;
+  country: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateAddressInput {
+  fullName?: string;
+  phone?: string;
+  line1?: string;
+  line2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  isDefault?: boolean;
+}

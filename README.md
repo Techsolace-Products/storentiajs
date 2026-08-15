@@ -142,8 +142,11 @@ await storentia.carts.clear();
 ### Orders & Checkout
 
 Requires customer JWT authentication. `createOrder` places the order and opens
-a gateway checkout (Razorpay) in one call — nothing it returns is a secret,
-the merchant's gateway key never leaves the platform.
+a gateway checkout in one call — nothing it returns is a secret, the
+merchant's gateway key never leaves the platform. `checkout.provider` tells
+you which gateway to open (Razorpay, Cashfree, etc.): a store only ever
+returns the one it actually has configured, so branch on it rather than
+assuming a specific provider.
 
 ```typescript
 // Check the store can take payments before rendering a checkout button
@@ -158,16 +161,19 @@ const { order, checkout } = await storentia.orders.createOrder({
 });
 // checkout: { provider, appId, gatewayOrderId, publicKey, amountMinor, currency, mode }
 
-// In the browser: open Razorpay Checkout.js with `checkout`, then hand its
-// callback (razorpay_order_id / razorpay_payment_id / razorpay_signature)
-// back here. The server re-verifies the signature against the merchant's
-// own secret — nothing from the browser is trusted directly.
-const { order: settled } = await storentia.orders.confirmPayment({
-  orderId: order.id,
-  gatewayOrderId: response.razorpay_order_id,
-  gatewayPaymentId: response.razorpay_payment_id,
-  signature: response.razorpay_signature,
-});
+// In the browser: open the widget for checkout.provider. Razorpay's
+// Checkout.js hands back a signature you confirm immediately:
+if (checkout.provider === 'Razorpay') {
+  const { order: settled } = await storentia.orders.confirmPayment({
+    orderId: order.id,
+    gatewayOrderId: response.razorpay_order_id,
+    gatewayPaymentId: response.razorpay_payment_id,
+    signature: response.razorpay_signature,
+  });
+}
+// Gateways with no client-side signature (Cashfree) skip confirmPayment
+// entirely — poll getOrder(orderId) instead and let the backend's own
+// reconciler settle it by asking the gateway directly.
 
 // Get / list orders
 const order = await storentia.orders.getOrder('order-id');
@@ -180,7 +186,8 @@ await storentia.orders.cancelOrder('order-id');
 
 See [`examples/checkout-flow.ts`](./examples/checkout-flow.ts) for the full
 server-side flow and [`examples/checkout-widget.html`](./examples/checkout-widget.html)
-for the browser half that opens the Razorpay widget and confirms the payment.
+for the browser half, which branches on `checkout.provider` to open the
+right gateway's widget.
 
 ### Blog Posts
 
